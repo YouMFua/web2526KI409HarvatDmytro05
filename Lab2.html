@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LED Dashboard</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a; color: #e2e8f0;
+      display: flex; justify-content: center;
+      align-items: center; min-height: 100vh;
+    }
+    .card {
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 16px; padding: 48px 40px;
+      max-width: 400px; width: 90%; text-align: center;
+    }
+    h1 { font-size: 22px; margin-bottom: 8px; }
+    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 36px; }
+    .bulb {
+      width: 80px; height: 80px; border-radius: 50%;
+      margin: 0 auto 32px; background: #1e3a2f;
+      border: 3px solid #166534; transition: all 0.4s ease;
+    }
+    .bulb.on {
+      background: #22c55e; border-color: #4ade80;
+      box-shadow: 0 0 40px #22c55e88, 0 0 80px #22c55e33;
+    }
+    .status-text { font-size: 14px; color: #94a3b8; margin-bottom: 32px; height: 20px; }
+    .btn-group { display: flex; gap: 12px; justify-content: center; }
+    .btn {
+      padding: 12px 28px; border-radius: 8px; border: none;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .btn-on  { background: #22c55e; color: #052e16; }
+    .btn-off { background: #ef4444; color: #fff; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .poll-info { margin-top: 24px; font-size: 11px; color: #475569; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>LED Dashboard</h1>
+  <p class="subtitle">Lab2 — Async Control via LittleFS & Fetch</p>
+  <div class="bulb" id="bulb"></div>
+  <p class="status-text" id="statusText">Завантаження...</p>
+  <div class="btn-group">
+    <button class="btn btn-on" onclick="sendCommand('on')">ON</button>
+    <button class="btn btn-off" onclick="sendCommand('off')">OFF</button>
+  </div>
+  <p class="poll-info">Автооновлення кожні 5 секунд</p>
+</div>
+<script>
+  function updateUI(isOn) {
+    const bulb = document.getElementById('bulb');
+    const txt  = document.getElementById('statusText');
+    if (isOn) {
+      bulb.classList.add('on');
+      txt.textContent = '● Світлодіод увімкнено';
+      txt.style.color = '#22c55e';
+    } else {
+      bulb.classList.remove('on');
+      txt.textContent = '○ Світлодіод вимкнено';
+      txt.style.color = '#94a3b8';
+    }
+  }
+  async function fetchStatus() {
+    try {
+      const res  = await fetch('/api/status');
+      const data = await res.json();
+      updateUI(data.led_on);
+    } catch (err) { console.error('Error:', err); }
+  }
+  async function sendCommand(cmd) {
+    try {
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: cmd })
+      });
+      fetchStatus();
+    } catch (err) { console.error('Error:', err); }
+  }
+  fetchStatus();
+  setInterval(fetchStatus, 5000);
+</script>
+</body>
+</html>

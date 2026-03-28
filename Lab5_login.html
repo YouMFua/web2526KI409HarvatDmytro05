@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ESP32 HTTPS Login</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0f172a;color:#e2e8f0;font-family:'Segoe UI',sans-serif;
+      display:flex;justify-content:center;align-items:center;min-height:100vh}
+    .card{background:#1e293b;border:1px solid #334155;border-radius:16px;
+      padding:40px;max-width:380px;width:90%;text-align:center}
+    .ico{font-size:48px;margin-bottom:12px}
+    .badge{display:inline-block;background:#22c55e22;color:#22c55e;
+      border:1px solid #22c55e44;border-radius:20px;font-size:11px;
+      padding:3px 12px;margin-bottom:20px}
+    h1{font-size:20px;margin-bottom:6px}
+    .sub{color:#64748b;font-size:13px;margin-bottom:28px}
+    label{display:block;text-align:left;font-size:11px;color:#94a3b8;
+      margin-bottom:5px;text-transform:uppercase}
+    input{width:100%;padding:10px 14px;margin-bottom:16px;background:#0f172a;
+      border:1px solid #334155;border-radius:8px;color:#e2e8f0;
+      font-size:14px;outline:none}
+    input:focus{border-color:#3b82f6}
+    .btn{width:100%;padding:12px;border:none;border-radius:8px;
+      background:#3b82f6;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+    .btn:hover{background:#2563eb}
+    .err{color:#ef4444;font-size:13px;margin-top:12px;display:none}
+    .fs-badge{margin-top:20px;font-size:11px;color:#475569}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="ico">🔒</div>
+  <span class="badge">HTTPS + mbedTLS</span>
+  <h1>ESP32-C3 Secure Server</h1>
+  <p class="sub">Lab5 — TLS/SSL + Basic Auth + LittleFS</p>
+
+  <label>Логін</label>
+  <input type="text" id="u" value="admin" autocomplete="username">
+
+  <label>Пароль</label>
+  <input type="password" id="p" placeholder="password" autocomplete="current-password">
+
+  <button class="btn" onclick="doLogin()">Увійти</button>
+  <p class="err" id="err">Невірний логін або пароль</p>
+
+  <p class="fs-badge">📁 Served from LittleFS Flash</p>
+</div>
+
+<script>
+async function doLogin() {
+  const u = document.getElementById('u').value;
+  const p = document.getElementById('p').value;
+  const creds = btoa(u + ':' + p);
+
+  sessionStorage.setItem('lab5creds', creds);
+  
+  try {
+    const res = await fetch('/dashboard', {
+      headers: { 'Authorization': 'Basic ' + creds }
+    });
+    if (res.ok) {
+      document.open();
+      document.write(await res.text());
+      document.close();
+    } else {
+      document.getElementById('err').style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('err').textContent = 'Помилка з\'єднання';
+    document.getElementById('err').style.display = 'block';
+  }
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BH1750 Live Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; padding: 24px; }
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .chip { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+    .chip.connected { background:#22c55e22; color:#22c55e; border:1px solid #22c55e44; }
+    .chip.disconnected { background:#ef444422; color:#ef4444; border:1px solid #ef444444; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background:#1e293b; border:1px solid #334155; border-radius:10px; padding:20px; text-align:center; }
+    .stat-card .value { font-size:28px; font-weight:700; color:#fbbf24; }
+    .chart-wrap { background:#1e293b; border:1px solid #334155; border-radius:10px; padding:20px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>☀️ BH1750 — Live Light Monitor</h1>
+  <span class="chip disconnected" id="wsStatus">Disconnected</span>
+</header>
+<div class="stats">
+  <div class="stat-card"><div>Поточна</div><div class="value" id="currentLux">—</div><div>lux</div></div>
+  <div class="stat-card"><div>Максимум</div><div class="value" id="maxLux">—</div><div>lux</div></div>
+  <div class="stat-card"><div>Мінімум</div><div class="value" id="minLux">—</div><div>lux</div></div>
+</div>
+<div class="chart-wrap"><canvas id="luxChart" height="100"></canvas></div>
+<script>
+  const MAX_POINTS = 30;
+  const ctx = document.getElementById('luxChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: [], datasets: [{ label: 'lux', data: [], borderColor: '#fbbf24', tension: 0.3, fill: true }] },
+    options: { animation: false, scales: { y: { beginAtZero: true } } }
+  });
+
+  let maxLux = -Infinity, minLux = Infinity;
+  const ws = new WebSocket('ws://' + location.hostname + ':81');
+  ws.onopen = () => { document.getElementById('wsStatus').className = 'chip connected'; document.getElementById('wsStatus').textContent = 'Connected'; };
+  ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    const time = new Date().toLocaleTimeString();
+    chart.data.labels.push(time);
+    chart.data.datasets[0].data.push(data.lux);
+    if (chart.data.labels.length > MAX_POINTS) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
+    chart.update('none');
+    document.getElementById('currentLux').textContent = data.lux.toFixed(1);
+    if (data.lux > maxLux) { maxLux = data.lux; document.getElementById('maxLux').textContent = maxLux.toFixed(1); }
+    if (data.lux < minLux) { minLux = data.lux; document.getElementById('minLux').textContent = minLux.toFixed(1); }
+  };
+</script>
+</body>
+</html>

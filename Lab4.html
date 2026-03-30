@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Wi-Fi Setup</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0f172a; color:#e2e8f0; font-family:'Segoe UI',sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:16px; padding:40px; max-width:420px; width:90%; }
+    h1 { font-size:20px; margin-bottom:6px; }
+    .sub { color:#64748b; font-size:13px; margin-bottom:32px; }
+    label { display:block; font-size:12px; color:#94a3b8; margin-bottom:6px; text-transform:uppercase; }
+    input { width:100%; padding:10px 14px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:#e2e8f0; font-size:14px; margin-bottom:20px; outline:none; }
+    .btn { width:100%; padding:12px; border:none; border-radius:8px; background:#3b82f6; color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
+    .msg { margin-top:16px; font-size:13px; text-align:center; color:#22c55e; display:none; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Wi-Fi Налаштування</h1>
+  <p class="sub">Підключіть пристрій до вашої мережі</p>
+  <label>Назва мережі (SSID)</label>
+  <input type="text" id="ssid" placeholder="My_Network">
+  <label>Пароль</label>
+  <input type="password" id="password" placeholder="Password">
+  <button class="btn" onclick="saveConfig()">Підключити пристрій</button>
+  <p class="msg" id="msg">Збережено! Пристрій перезавантажується...</p>
+</div>
+<script>
+  async function saveConfig() {
+    const ssid = document.getElementById('ssid').value.trim();
+    const pass = document.getElementById('password').value;
+    if (!ssid) return;
+    const res = await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `ssid=${encodeURIComponent(ssid)}&password=${encodeURIComponent(pass)}`
+    });
+    if (res.ok) document.getElementById('msg').style.display = 'block';
+  }
+</script>
+</body>
+</html>

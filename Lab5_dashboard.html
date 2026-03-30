@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Secure Dashboard</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0f172a;color:#e2e8f0;font-family:'Segoe UI',sans-serif;
+      display:flex;justify-content:center;align-items:center;
+      min-height:100vh;padding:24px}
+    .card{background:#1e293b;border:1px solid #334155;border-radius:16px;
+      padding:40px;max-width:520px;width:100%;text-align:center}
+    h1{font-size:22px;margin-bottom:8px}
+    .sub{color:#64748b;font-size:13px;margin-bottom:28px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;margin-bottom:24px}
+    .item{background:#0f172a;border-radius:8px;padding:16px}
+    .l{font-size:11px;color:#64748b;text-transform:uppercase;margin-bottom:4px}
+    .v{font-size:15px;font-weight:700}
+    .g{color:#22c55e}.b{color:#38bdf8}.y{color:#fbbf24}.p{color:#a78bfa}
+    .divider{border:none;border-top:1px solid #334155;margin:20px 0}
+    .api-section{text-align:left}
+    .api-title{font-size:12px;color:#64748b;text-transform:uppercase;margin-bottom:12px}
+    .api-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;
+      background:#0f172a;border-radius:8px;padding:10px 14px}
+    .method{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;min-width:44px;text-align:center}
+    .get{background:#22c55e22;color:#22c55e}
+    .url{font-size:13px;color:#94a3b8;font-family:monospace}
+    .btn-api{margin-left:auto;padding:4px 12px;border:none;border-radius:6px;
+      background:#3b82f6;color:#fff;font-size:12px;cursor:pointer}
+    .btn-api:hover{background:#2563eb}
+    #apiResult{margin-top:12px;background:#0f172a;border-radius:8px;
+      padding:12px;font-family:monospace;font-size:12px;color:#22c55e;
+      display:none;text-align:left;word-break:break-all}
+    .logout{padding:10px 24px;border:1px solid #334155;border-radius:8px;
+      background:none;color:#94a3b8;cursor:pointer;font-size:13px}
+    .logout:hover{background:#334155;color:#e2e8f0}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>✅ Доступ дозволено</h1>
+  <p class="sub">Lab5 — Захищена панель керування (LittleFS)</p>
+
+  <div class="grid">
+    <div class="item"><div class="l">Протокол</div><div class="v g">HTTPS</div></div>
+    <div class="item"><div class="l">TLS бібліотека</div><div class="v b">mbedTLS</div></div>
+    <div class="item"><div class="l">Автентифікація</div><div class="v y">Basic Auth</div></div>
+    <div class="item"><div class="l">Файлова система</div><div class="v p">LittleFS</div></div>
+    <div class="item"><div class="l">Чіп</div><div class="v g">ESP32-C3</div></div>
+    <div class="item"><div class="l">Порт</div><div class="v b">443</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="api-section">
+    <div class="api-title">Тест захищеного API</div>
+    <div class="api-row">
+      <span class="method get">GET</span>
+      <span class="url">/api/status</span>
+      <button class="btn-api" onclick="testAPI()">Запит</button>
+    </div>
+    <div id="apiResult"></div>
+  </div>
+
+  <hr class="divider">
+  <button class="logout" onclick="window.location='/'">Вийти</button>
+</div>
+
+<script>
+  // Зберігаємо credentials для API запиту
+  const creds = sessionStorage.getItem('lab5creds') || '';
+
+  async function testAPI() {
+    const el = document.getElementById('apiResult');
+    el.style.display = 'block';
+    el.textContent = 'Завантаження...';
+    try {
+      const res = await fetch('/api/status', {
+        headers: { 'Authorization': 'Basic ' + creds }
+      });
+      const data = await res.json();
+      el.textContent = JSON.stringify(data, null, 2);
+    } catch(e) {
+      el.textContent = 'Помилка: ' + e.message;
+      el.style.color = '#ef4444';
+    }
+  }
+</script>
+</body>
+</html>
